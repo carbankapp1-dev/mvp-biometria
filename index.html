@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verificação de Selfie (protótipo)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Verificação de selfie</h1>
+    <p class="aviso">Protótipo educacional. A análise acontece no seu navegador; nenhuma imagem é enviada para servidores.</p>
+
+    <section id="etapa1" class="card">
+      <h2>1. Foto do documento</h2>
+      <p>Envie uma foto do documento (RG/CNH) em que o rosto apareça com nitidez.</p>
+      <input type="file" id="docInput" accept="image/*">
+      <img id="docPreview" alt="" hidden>
+      <p id="docStatus" class="status"></p>
+    </section>
+
+    <section id="etapa2" class="card" hidden>
+      <h2>2. Selfie ao vivo</h2>
+      <div class="video-wrap">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <p id="instrucao" class="instrucao">Clique em iniciar e siga as instruções.</p>
+      <ul id="passos" class="passos">
+        <li id="passoPiscar">Piscar</li>
+        <li id="passoVirar">Virar a cabeça</li>
+        <li id="passoFace">Comparar com o documento</li>
+      </ul>
+      <button id="btnIniciar">Iniciar câmera</button>
+    </section>
+
+    <section id="resultado" class="card" hidden>
+      <h2>Resultado</h2>
+      <p id="resTexto" class="resultado"></p>
+      <p id="resDetalhe" class="status"></p>
+      <button id="btnRefazer">Refazer</button>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

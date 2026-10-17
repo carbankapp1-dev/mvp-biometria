@@ -1,0 +1,41 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f4f5f7;
+  color: #1f2430;
+}
+main { max-width: 560px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.5rem; margin: 8px 0; }
+h2 { font-size: 1.1rem; margin: 0 0 8px; }
+.aviso { font-size: .85rem; color: #5b6272; }
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 14px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+#docPreview { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+.video-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000; border-radius: 10px; overflow: hidden; }
+.video-wrap video, .video-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.instrucao { font-size: 1.1rem; font-weight: 600; text-align: center; min-height: 1.6em; }
+.passos { list-style: none; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.passos li { padding: 6px 10px; border-radius: 999px; background: #e7e9ee; font-size: .85rem; }
+.passos li.ok { background: #cdeed6; color: #11602b; }
+.passos li.atual { background: #ffe9b0; color: #6b4a00; }
+button {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #2457ff;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:disabled { background: #9aa6c9; cursor: not-allowed; }
+.status { font-size: .85rem; color: #5b6272; }
+.resultado { font-size: 1.3rem; font-weight: 700; }
+.resultado.ok { color: #11602b; }
+.resultado.falha { color: #b3261e; }
