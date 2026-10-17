@@ -1,5 +1,5 @@
 /* Núcleo compartilhado: modelos, câmera e desafio de prova de vida.
- * Usado por index.html (teste local) e selfie.html (link para o cliente).
+ * Usado por teste.html (teste local) e selfie.html (link para o cliente).
  *
  * Desafio: virar a cabeça para um lado sorteado e voltar a olhar para a frente.
  * Durante o "olhar para a frente" o rosto é amostrado e o melhor quadro vira a selfie.
