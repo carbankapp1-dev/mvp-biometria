@@ -6,8 +6,8 @@
 
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 const LIMIAR_DISTANCIA = 0.5;   // menor = mais parecido (0.6 é o padrão da lib; 0.5 é mais rígido)
-const EAR_FECHADO = 0.21;       // olho fechado abaixo disso
-const EAR_ABERTO = 0.26;        // olho aberto acima disso
+const BLINK_RAZAO = 0.80;       // piscou se o EAR cair abaixo de 80% do seu EAR normal (adaptativo)
+const BLINK_JANELA = 20;        // quantos quadros recentes formam o "olho aberto" de referência
 const VIRADA_MIN = 0.22;        // assimetria nariz/rosto para considerar a cabeça virada
 const TEMPO_MAX_PASSO_MS = 12000;
 
@@ -28,6 +28,14 @@ let stream = null;
 /* ---------- utilidades ---------- */
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Linha de depuração sob a instrução: mostra o que o app está medindo
+const debugEl = document.createElement("p");
+debugEl.id = "debug";
+debugEl.className = "status";
+debugEl.style.textAlign = "center";
+el.instrucao.after(debugEl);
+const mostrarDebug = (t) => { debugEl.textContent = t; };
 
 function ear(olho) {
   // Eye Aspect Ratio com os 6 pontos do olho
@@ -122,7 +130,8 @@ el.btnIniciar.addEventListener("click", async () => {
   }
 });
 
-const optsDetector = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+// 224 é mais rápido (importante no celular) e suficiente para uma selfie, em que o rosto ocupa boa parte do quadro
+const optsDetector = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
 
 async function detectarFrame() {
   return faceapi.detectSingleFace(el.video, optsDetector()).withFaceLandmarks();
@@ -144,7 +153,8 @@ async function esperarPasso(nome, testeFn) {
     const det = await detectarFrame();
     desenharCaixa(det);
     if (det && (await testeFn(det))) return true;
-    await sleep(60);
+    if (!det) mostrarDebug("Rosto não detectado: centralize o rosto e melhore a luz");
+    // sem sleep: a inferência já é lenta, e cada quadro perdido pode ser o piscar
   }
   return false;
 }
@@ -152,12 +162,23 @@ async function esperarPasso(nome, testeFn) {
 async function passoPiscar() {
   el.instrucao.textContent = "Olhe para a câmera e pisque";
   marcar(el.passoPiscar, "atual");
-  let viuAberto = false;
+  const janela = []; // EARs recentes; o percentil 80 representa o seu olho aberto
   const ok = await esperarPasso("piscar", (det) => {
     const l = det.landmarks;
     const media = (ear(l.getLeftEye()) + ear(l.getRightEye())) / 2;
-    if (media > EAR_ABERTO) viuAberto = true;
-    return viuAberto && media < EAR_FECHADO; // aberto -> fechado
+    if (janela.length < 6) { // calibrando com os primeiros quadros
+      janela.push(media);
+      mostrarDebug(`Calibrando... EAR ${media.toFixed(3)}`);
+      return false;
+    }
+    const ordenado = [...janela].sort((a, b) => a - b);
+    const base = ordenado[Math.floor(ordenado.length * 0.8)];
+    const limite = base * BLINK_RAZAO;
+    mostrarDebug(`EAR ${media.toFixed(3)} • normal ${base.toFixed(3)} • piscada abaixo de ${limite.toFixed(3)}`);
+    if (media < limite) return true; // queda relativa = piscada
+    janela.push(media); // só alimenta a referência com olho aberto
+    if (janela.length > BLINK_JANELA) janela.shift();
+    return false;
   });
   marcar(el.passoPiscar, ok ? "ok" : null);
   return ok;
@@ -170,6 +191,7 @@ async function passoVirar() {
   // O vídeo está espelhado na tela, então o sinal é invertido para o usuário
   const ok = await esperarPasso("virar", (det) => {
     const d = direcaoCabeca(det.landmarks);
+    mostrarDebug(`Giro ${d.toFixed(2)} (precisa passar de ${VIRADA_MIN} para o lado pedido)`);
     return lado === "esquerda" ? d < -VIRADA_MIN : d > VIRADA_MIN;
   });
   marcar(el.passoVirar, ok ? "ok" : null);
@@ -189,7 +211,9 @@ async function passoFace() {
       .withFaceDescriptor();
     desenharCaixa(det);
     if (det && Math.abs(direcaoCabeca(det.landmarks)) < 0.12) {
-      distancias.push(faceapi.euclideanDistance(descritorDoc, det.descriptor));
+      const dd = faceapi.euclideanDistance(descritorDoc, det.descriptor);
+      distancias.push(dd);
+      mostrarDebug(`Amostra ${distancias.length}/5 • distância ${dd.toFixed(3)} (limite ${LIMIAR_DISTANCIA})`);
     }
     await sleep(150);
   }
@@ -269,6 +293,7 @@ el.btnRefazer.addEventListener("click", () => {
   el.resultado.hidden = true;
   el.btnIniciar.disabled = false;
   el.instrucao.textContent = "Clique em iniciar e siga as instruções.";
+  mostrarDebug("");
   [el.passoPiscar, el.passoVirar, el.passoFace].forEach((p) => marcar(p, null));
   el.etapa2.scrollIntoView({ behavior: "smooth" });
 });
