@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Verificação de identidade</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Verificação de identidade</h1>
+
+    <section id="carregando" class="card">
+      <p>Verificando seu link...</p>
+    </section>
+
+    <section id="erro" class="card" hidden>
+      <h2>Não foi possível continuar</h2>
+      <p id="erroTexto"></p>
+    </section>
+
+    <section id="consentimento" class="card" hidden>
+      <h2 id="saudacao">Olá!</h2>
+      <p>
+        Para confirmar sua identidade, vamos tirar uma selfie ao vivo. Você vai virar a cabeça
+        para um lado e depois olhar para a câmera. Procure um lugar bem iluminado e tire óculos
+        escuros ou boné.
+      </p>
+      <label class="check">
+        <input type="checkbox" id="chkConsent">
+        <span>
+          Autorizo <span id="empresa">a empresa que enviou este link</span> a coletar e armazenar
+          minha selfie para compará-la com o documento enviado, com a finalidade exclusiva de
+          verificar minha identidade.
+        </span>
+      </label>
+      <button id="btnContinuar" disabled>Continuar</button>
+    </section>
+
+    <section id="etapaSelfie" class="card" hidden>
+      <h2>Selfie ao vivo</h2>
+      <div class="video-wrap">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <p id="instrucao" class="instrucao">Toque em iniciar e siga as instruções.</p>
+      <p id="debug" class="status debug"></p>
+      <ul class="passos">
+        <li id="passoVirar">Virar a cabeça</li>
+        <li id="passoFrente">Olhar para a frente</li>
+      </ul>
+      <button id="btnIniciar">Iniciar câmera</button>
+    </section>
+
+    <section id="finalizado" class="card" hidden>
+      <h2>Tudo certo!</h2>
+      <p>Sua selfie foi enviada. Você já pode fechar esta página.</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <script src="selfie.js"></script>
+</body>
+</html>

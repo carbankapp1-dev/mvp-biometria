@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Painel do operador</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="largo">
+    <h1>Painel do operador</h1>
+
+    <section id="configErro" class="card" hidden>
+      <p class="erro-msg">Preencha SUPABASE_URL e SUPABASE_ANON_KEY no config.js para usar o painel.</p>
+    </section>
+
+    <!-- Login -->
+    <section id="login" class="card" hidden>
+      <h2>Entrar</h2>
+      <form id="formLogin">
+        <label for="loginEmail">E-mail</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+        <label for="loginSenha">Senha</label>
+        <input type="password" id="loginSenha" autocomplete="current-password" required>
+        <button type="submit">Entrar</button>
+        <p id="loginErro" class="erro-msg"></p>
+      </form>
+    </section>
+
+    <!-- Painel -->
+    <div id="painel" hidden>
+      <div class="linha entre">
+        <span class="status">Conectado como <strong id="usuarioEmail"></strong></span>
+        <button id="btnSair" class="btn-sm btn-sec">Sair</button>
+      </div>
+
+      <section class="card">
+        <h2>Nova verificação</h2>
+        <form id="formNova">
+          <label for="nomeCliente">Nome do cliente (opcional)</label>
+          <input type="text" id="nomeCliente" maxlength="80" autocomplete="off">
+
+          <label for="docArquivo">Foto do documento (RG/CNH) com o rosto nítido</label>
+          <input type="file" id="docArquivo" accept="image/*" required>
+
+          <label for="validade">Validade do link</label>
+          <select id="validade">
+            <option value="24">24 horas</option>
+            <option value="48" selected>48 horas</option>
+            <option value="72">72 horas</option>
+          </select>
+
+          <button type="submit" id="btnGerar">Gerar link</button>
+        </form>
+        <p id="statusNova" class="status"></p>
+
+        <div id="resultadoLink" class="link-box" hidden>
+          <label for="linkInput">Envie este link ao cliente</label>
+          <input type="text" id="linkInput" readonly>
+          <div class="linha" style="margin-top:8px">
+            <button type="button" id="btnCopiar" class="btn-sm">Copiar link</button>
+            <a id="linkWhats" class="btn-link" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="comparacao" class="card" hidden>
+        <div class="linha entre">
+          <h2>Comparação</h2>
+          <button id="btnFecharCmp" class="btn-sm btn-sec">Fechar</button>
+        </div>
+        <p id="cmpStatus" class="status"></p>
+        <div class="comparacao">
+          <figure>
+            <img id="cmpDoc" alt="Documento" hidden>
+            <figcaption>Documento</figcaption>
+          </figure>
+          <figure>
+            <img id="cmpSelfie" alt="Selfie" hidden>
+            <figcaption>Selfie</figcaption>
+          </figure>
+        </div>
+        <p id="cmpVeredito" class="resultado"></p>
+        <p id="cmpDetalhe" class="status"></p>
+        <div class="linha">
+          <button id="btnAprovar" class="btn-sm btn-ok" disabled>Aprovar</button>
+          <button id="btnReprovar" class="btn-sm btn-perigo" disabled>Reprovar</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="linha entre">
+          <h2>Solicitações</h2>
+          <button id="btnAtualizar" class="btn-sm btn-sec">Atualizar</button>
+        </div>
+        <p id="statusLista" class="status"></p>
+        <div id="lista"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="core.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

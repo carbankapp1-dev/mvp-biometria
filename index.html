@@ -3,47 +3,60 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verificação de Selfie (protótipo)</title>
+  <title>Verificação de Selfie (teste local)</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <h1>Verificação de selfie</h1>
-    <p class="aviso">Protótipo educacional. A análise acontece no seu navegador; nenhuma imagem é enviada para servidores.</p>
+    <p class="aviso">
+      Teste local: tudo é analisado no seu navegador e nada é enviado para servidores.
+      Para enviar um link a um cliente, use o <a href="admin.html">painel do operador</a>.
+    </p>
 
-    <section id="etapa1" class="card">
-      <h2>1. Foto do documento</h2>
+    <section id="etapaSelfie" class="card">
+      <h2>1. Selfie ao vivo</h2>
+      <div class="video-wrap">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <p id="instrucao" class="instrucao">Clique em iniciar e siga as instruções.</p>
+      <p id="debug" class="status debug"></p>
+      <ul id="passos" class="passos">
+        <li id="passoVirar">Virar a cabeça</li>
+        <li id="passoFrente">Olhar para a frente</li>
+      </ul>
+      <button id="btnIniciar">Iniciar câmera</button>
+    </section>
+
+    <section id="etapaDoc" class="card">
+      <h2>2. Foto do documento</h2>
       <p>Envie uma foto do documento (RG/CNH) em que o rosto apareça com nitidez.</p>
       <input type="file" id="docInput" accept="image/*">
       <img id="docPreview" alt="" hidden>
       <p id="docStatus" class="status"></p>
     </section>
 
-    <section id="etapa2" class="card" hidden>
-      <h2>2. Selfie ao vivo</h2>
-      <div class="video-wrap">
-        <video id="video" autoplay muted playsinline></video>
-        <canvas id="overlay"></canvas>
-      </div>
-      <p id="instrucao" class="instrucao">Clique em iniciar e siga as instruções.</p>
-      <ul id="passos" class="passos">
-        <li id="passoVirar">Virar a cabeça</li>
-        <li id="passoFace">Olhar para a frente</li>
-      </ul>
-      <button id="btnIniciar">Iniciar câmera</button>
-    </section>
-
     <section id="resultado" class="card" hidden>
       <h2>Resultado</h2>
       <p id="resTexto" class="resultado"></p>
       <p id="resDetalhe" class="status"></p>
-      <button id="btnRefazer">Refazer</button>
+      <div class="comparacao">
+        <figure>
+          <img id="resSelfie" alt="Selfie capturada" hidden>
+          <figcaption>Selfie</figcaption>
+        </figure>
+        <figure>
+          <img id="resDoc" alt="Documento" hidden>
+          <figcaption>Documento</figcaption>
+        </figure>
+      </div>
+      <button id="btnRefazer">Refazer selfie</button>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
+  <script src="core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
