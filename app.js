@@ -1,13 +1,12 @@
 /* Protótipo de verificação de selfie
  * - Face match: embeddings do face-api (distância euclidiana)
- * - Liveness ativo: piscar + virar a cabeça, em ordem aleatória
+ * - Liveness ativo: virar a cabeça para um lado sorteado e voltar a olhar para a frente
  * Tudo roda no navegador. Só o resultado (sem imagens) vai ao Supabase.
  */
 
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 const LIMIAR_DISTANCIA = 0.5;   // menor = mais parecido (0.6 é o padrão da lib; 0.5 é mais rígido)
-const BLINK_RAZAO = 0.80;       // piscou se o EAR cair abaixo de 80% do seu EAR normal (adaptativo)
-const BLINK_JANELA = 20;        // quantos quadros recentes formam o "olho aberto" de referência
+const FRENTE_MAX = 0.12;        // assimetria máxima para considerar o rosto "de frente"
 const VIRADA_MIN = 0.22;        // assimetria nariz/rosto para considerar a cabeça virada
 const TEMPO_MAX_PASSO_MS = 12000;
 
@@ -16,7 +15,7 @@ const el = {
   docInput: $("docInput"), docPreview: $("docPreview"), docStatus: $("docStatus"),
   etapa2: $("etapa2"), video: $("video"), overlay: $("overlay"),
   instrucao: $("instrucao"), btnIniciar: $("btnIniciar"),
-  passoPiscar: $("passoPiscar"), passoVirar: $("passoVirar"), passoFace: $("passoFace"),
+  passoVirar: $("passoVirar"), passoFace: $("passoFace"),
   resultado: $("resultado"), resTexto: $("resTexto"), resDetalhe: $("resDetalhe"),
   btnRefazer: $("btnRefazer"),
 };
@@ -36,14 +35,6 @@ debugEl.className = "status";
 debugEl.style.textAlign = "center";
 el.instrucao.after(debugEl);
 const mostrarDebug = (t) => { debugEl.textContent = t; };
-
-function ear(olho) {
-  // Eye Aspect Ratio com os 6 pontos do olho
-  const v1 = dist(olho[1], olho[5]);
-  const v2 = dist(olho[2], olho[4]);
-  const h = dist(olho[0], olho[3]);
-  return (v1 + v2) / (2 * h);
-}
 
 function direcaoCabeca(landmarks) {
   // Compara a distância do nariz às bordas do rosto (contorno: pontos 0 e 16)
@@ -154,34 +145,9 @@ async function esperarPasso(nome, testeFn) {
     desenharCaixa(det);
     if (det && (await testeFn(det))) return true;
     if (!det) mostrarDebug("Rosto não detectado: centralize o rosto e melhore a luz");
-    // sem sleep: a inferência já é lenta, e cada quadro perdido pode ser o piscar
+    // sem sleep: a inferência já é lenta, e queremos o máximo de quadros possível
   }
   return false;
-}
-
-async function passoPiscar() {
-  el.instrucao.textContent = "Olhe para a câmera e pisque";
-  marcar(el.passoPiscar, "atual");
-  const janela = []; // EARs recentes; o percentil 80 representa o seu olho aberto
-  const ok = await esperarPasso("piscar", (det) => {
-    const l = det.landmarks;
-    const media = (ear(l.getLeftEye()) + ear(l.getRightEye())) / 2;
-    if (janela.length < 6) { // calibrando com os primeiros quadros
-      janela.push(media);
-      mostrarDebug(`Calibrando... EAR ${media.toFixed(3)}`);
-      return false;
-    }
-    const ordenado = [...janela].sort((a, b) => a - b);
-    const base = ordenado[Math.floor(ordenado.length * 0.8)];
-    const limite = base * BLINK_RAZAO;
-    mostrarDebug(`EAR ${media.toFixed(3)} • normal ${base.toFixed(3)} • piscada abaixo de ${limite.toFixed(3)}`);
-    if (media < limite) return true; // queda relativa = piscada
-    janela.push(media); // só alimenta a referência com olho aberto
-    if (janela.length > BLINK_JANELA) janela.shift();
-    return false;
-  });
-  marcar(el.passoPiscar, ok ? "ok" : null);
-  return ok;
 }
 
 async function passoVirar() {
@@ -199,9 +165,9 @@ async function passoVirar() {
 }
 
 async function passoFace() {
-  el.instrucao.textContent = "Olhe de frente para a câmera";
+  el.instrucao.textContent = "Agora volte a olhar para a frente";
   marcar(el.passoFace, "atual");
-  // Espera o rosto ficar de frente e captura algumas amostras
+  // Espera o rosto voltar ao centro (provando o movimento) e captura algumas amostras
   const distancias = [];
   const inicio = performance.now();
   while (distancias.length < 5 && performance.now() - inicio < TEMPO_MAX_PASSO_MS) {
@@ -210,10 +176,15 @@ async function passoFace() {
       .withFaceLandmarks()
       .withFaceDescriptor();
     desenharCaixa(det);
-    if (det && Math.abs(direcaoCabeca(det.landmarks)) < 0.12) {
-      const dd = faceapi.euclideanDistance(descritorDoc, det.descriptor);
-      distancias.push(dd);
-      mostrarDebug(`Amostra ${distancias.length}/5 • distância ${dd.toFixed(3)} (limite ${LIMIAR_DISTANCIA})`);
+    if (det) {
+      const giro = direcaoCabeca(det.landmarks);
+      if (Math.abs(giro) < FRENTE_MAX) {
+        const dd = faceapi.euclideanDistance(descritorDoc, det.descriptor);
+        distancias.push(dd);
+        mostrarDebug(`Amostra ${distancias.length}/5 • distância ${dd.toFixed(3)} (limite ${LIMIAR_DISTANCIA})`);
+      } else {
+        mostrarDebug(`Olhe direto para a câmera (giro ${giro.toFixed(2)}, precisa ficar abaixo de ${FRENTE_MAX})`);
+      }
     }
     await sleep(150);
   }
@@ -230,14 +201,10 @@ async function passoFace() {
 }
 
 async function executarVerificacao() {
-  [el.passoPiscar, el.passoVirar, el.passoFace].forEach((p) => marcar(p, null));
+  [el.passoVirar, el.passoFace].forEach((p) => marcar(p, null));
 
-  // Ordem aleatória dificulta ataques com vídeo gravado
-  const desafios = [passoPiscar, passoVirar].sort(() => Math.random() - 0.5);
-  let liveness = true;
-  for (const d of desafios) {
-    if (!(await d())) { liveness = false; break; }
-  }
+  // O lado sorteado a cada tentativa dificulta ataques com vídeo gravado
+  const liveness = await passoVirar();
 
   let face = { ok: false, distancia: null };
   if (liveness) face = await passoFace();
@@ -294,6 +261,6 @@ el.btnRefazer.addEventListener("click", () => {
   el.btnIniciar.disabled = false;
   el.instrucao.textContent = "Clique em iniciar e siga as instruções.";
   mostrarDebug("");
-  [el.passoPiscar, el.passoVirar, el.passoFace].forEach((p) => marcar(p, null));
+  [el.passoVirar, el.passoFace].forEach((p) => marcar(p, null));
   el.etapa2.scrollIntoView({ behavior: "smooth" });
 });
