@@ -97,14 +97,38 @@ a.btn-link {
   text-decoration: none;
 }
 
-a.btn-neutro {
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: 8px;
+/* Cabeçalho e botões de ícone (alvo de toque de 44px) */
+.topo { display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; min-height: 48px; }
+.topo h1 { flex: 1; margin: 0; font-size: 1.4rem; }
+.acoes { display: flex; gap: 8px; }
+.icone-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 12px;
   background: #e7e9ee;
   color: #1f2430;
-  font-size: .9rem;
+  cursor: pointer;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.icone-btn:hover { background: #d9dce4; }
+.icone-btn:active { background: #cdd1db; }
+.icone-btn:focus-visible { outline: 3px solid #2457ff; outline-offset: 2px; }
+.icone-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .status { font-size: .85rem; color: #5b6272; }

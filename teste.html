@@ -3,16 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verificação de Selfie (teste local)</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Biometria · Teste local</title>
+  <meta name="theme-color" content="#00306e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Biometria">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
-    <h1>Verificação de selfie</h1>
-    <p class="aviso">
-      Teste local: tudo é analisado no seu navegador e nada é enviado para servidores.
-      Para enviar um link a um cliente, volte ao <a href="index.html">painel do operador</a>.
-    </p>
+    <header class="topo">
+      <a href="index.html" class="icone-btn" title="Voltar ao painel" aria-label="Voltar ao painel">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </a>
+      <h1>Teste local</h1>
+    </header>
+    <p class="aviso">Tudo é analisado no seu navegador e nada é enviado para servidores.</p>
 
     <section id="etapaSelfie" class="card">
       <h2>1. Selfie ao vivo</h2>
@@ -58,5 +74,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
   <script src="core.js"></script>
   <script src="app.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

@@ -5,12 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <title>Painel do operador</title>
+  <title>Biometria · Painel</title>
+  <meta name="theme-color" content="#00306e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Biometria">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="largo">
-    <h1>Painel do operador</h1>
+    <header class="topo">
+      <h1>Painel</h1>
+      <nav id="acoes" class="acoes" aria-label="Ações" hidden>
+        <a href="teste.html" class="icone-btn" title="Teste local (sem banco)" aria-label="Teste local (sem banco)">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/>
+            <path d="M8.5 2h7"/>
+            <path d="M7 16h10"/>
+          </svg>
+        </a>
+        <button type="button" id="btnSair" class="icone-btn" title="Sair" aria-label="Sair">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </nav>
+    </header>
 
     <section id="configErro" class="card" hidden>
       <p class="erro-msg">Preencha SUPABASE_URL e SUPABASE_ANON_KEY no config.js para usar o painel.</p>
@@ -31,14 +59,6 @@
 
     <!-- Painel -->
     <div id="painel" hidden>
-      <div class="linha entre">
-        <span class="status">Conectado como <strong id="usuarioEmail"></strong></span>
-        <div class="linha">
-          <a href="teste.html" class="btn-neutro">Teste local (sem banco)</a>
-          <button id="btnSair" class="btn-sm btn-sec">Sair</button>
-        </div>
-      </div>
-
       <section class="card">
         <h2>Nova verificação</h2>
         <form id="formNova">
@@ -109,5 +129,6 @@
   <script src="config.js"></script>
   <script src="core.js"></script>
   <script src="admin.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

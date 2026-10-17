@@ -97,8 +97,12 @@ async function baixar(bucket, caminho) {
 function aplicarSessao() {
   $("login").hidden = !!usuario;
   $("painel").hidden = !usuario;
+  $("acoes").hidden = !usuario;
   if (usuario) {
-    $("usuarioEmail").textContent = usuario.email || "";
+    // O e-mail da conta aparece só como dica do botão Sair (sem ocupar espaço na tela)
+    const rotuloSair = usuario.email ? `Sair (${usuario.email})` : "Sair";
+    $("btnSair").title = rotuloSair;
+    $("btnSair").setAttribute("aria-label", rotuloSair);
     setTimeout(listar, 0); // não chamar o supabase direto dentro do callback de auth
   } else {
     fecharComparacao();
