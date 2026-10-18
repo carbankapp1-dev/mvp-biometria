@@ -133,7 +133,7 @@ function mostrarResultado({ aprovado, distancia, detalhe }) {
 el.btnRefazer.addEventListener("click", () => {
   el.resultado.hidden = true;
   selfie = null;
-  ui.instrucao("Clique em iniciar e siga as instruções.");
+  ui.instrucao("");
   ui.debug("");
   ui.passo("virar", null);
   ui.passo("frente", null);

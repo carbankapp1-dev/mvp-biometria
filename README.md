@@ -97,7 +97,7 @@ O que o PWA faz e não faz:
 
 O navegador guarda JavaScript e CSS em cache (o GitHub Pages deixa os arquivos valerem por cerca de 10 minutos). Se o celular misturar um arquivo novo com um antigo, ou se o banco e os arquivos estiverem em versões diferentes, a selfie pode não gravar.
 
-Por isso o rodapé do painel e da página do cliente mostra a **versão** (ex.: `v2026.10.17-c`). Para publicar uma mudança:
+Por isso o rodapé do painel e da página do cliente mostra a **versão** (ex.: `v2026.10.18-a`). Para publicar uma mudança:
 
 1. Suba os arquivos novos e, se o `supabase.sql` mudou, rode-o de novo no SQL Editor **antes** de testar.
 2. Troque a versão em três lugares: `VERSAO` no `core.js` e o `?v=...` dos scripts e do CSS em `index.html`, `teste.html` e `selfie.html`. É isso que obriga o navegador a baixar os arquivos novos.
@@ -123,3 +123,7 @@ Por isso o rodapé do painel e da página do cliente mostra a **versão** (ex.: 
 - **Dependências de CDN:** as versões estão fixadas (`face-api 1.7.15`, `supabase-js 2.118.0`). Para proteção extra contra adulteração do CDN, adicione `integrity` e `crossorigin="anonymous"` nas tags `<script>`. Hashes calculados a partir dos pacotes do npm (não consegui conferi-los contra o que o CDN serve, então teste antes de publicar; se a página parar de carregar com erro de *integrity* no console, remova o atributo):
   - `face-api.js`: `sha384-M5nePoB6/w/a9JhtegEibSLGiJy/+QMZZMfvcxjWVCQW/HPwrQ7i21V/Px/8AyVA`
   - `supabase.js`: `sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK`
+
+## Roteiro
+
+As próximas etapas planejadas (por exemplo, verificação no servidor com AWS Rekognition) estão em [ROADMAP.md](ROADMAP.md).

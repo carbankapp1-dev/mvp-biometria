@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Biometria">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" href="style.css?v=2026.10.17-c">
+  <link rel="stylesheet" href="style.css?v=2026.10.18-a">
 </head>
 <body>
   <main>
@@ -36,13 +36,13 @@
         <video id="video" autoplay muted playsinline></video>
         <canvas id="overlay"></canvas>
       </div>
-      <p id="instrucao" class="instrucao">Clique em iniciar e siga as instruções.</p>
-      <p id="debug" class="status debug"></p>
+      <button id="btnIniciar">Iniciar câmera</button>
       <ul id="passos" class="passos">
         <li id="passoVirar">Virar a cabeça</li>
         <li id="passoFrente">Olhar para a frente</li>
       </ul>
-      <button id="btnIniciar">Iniciar câmera</button>
+      <p id="instrucao" class="instrucao"></p>
+      <p id="debug" class="status debug"></p>
     </section>
 
     <section id="etapaDoc" class="card">
@@ -72,8 +72,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
-  <script src="core.js?v=2026.10.17-c"></script>
-  <script src="app.js?v=2026.10.17-c"></script>
+  <script src="core.js?v=2026.10.18-a"></script>
+  <script src="app.js?v=2026.10.18-a"></script>
   <script src="pwa.js"></script>
 </body>
 </html>

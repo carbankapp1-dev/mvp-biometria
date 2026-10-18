@@ -229,7 +229,7 @@ const SelfieCore = (() => {
 
   // Mude este valor (e o ?v= dos scripts nos .html) a cada publicação: o navegador do cliente
   // guarda JavaScript em cache e pode misturar arquivo novo com antigo.
-  const VERSAO = "2026.10.17-c";
+  const VERSAO = "2026.10.18-a";
 
   return { VERSAO, carregarModelos, obterLocalizacao, iniciarCamera, pararCamera, executarDesafio, direcaoCabeca };
 })();

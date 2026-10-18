@@ -48,10 +48,18 @@ a { color: #2457ff; }
   border-radius: 50%;
   pointer-events: none;
 }
-.instrucao { font-size: 1.15rem; font-weight: 600; text-align: center; min-height: 1.6em; margin: 12px 0 4px; }
-.debug { text-align: center; min-height: 1.2em; margin: 0 0 8px; }
-.passos { list-style: none; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.passos li { padding: 6px 10px; border-radius: 999px; background: #e7e9ee; font-size: .85rem; }
+.instrucao { font-size: 1.15rem; font-weight: 600; text-align: center; margin: 12px 0 4px; }
+.instrucao:empty, .debug:empty { display: none; }
+.debug { text-align: center; margin: 0 0 8px; }
+.video-wrap + button { margin-top: 14px; }
+/* Duas etapas com exatamente o mesmo tamanho */
+.passos { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.passos li {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 8px 10px;
+  border-radius: 12px; background: #e7e9ee;
+  font-size: .9rem; text-align: center; line-height: 1.2;
+}
 .passos li.ok { background: #cdeed6; color: #11602b; }
 .passos li.atual { background: #ffe9b0; color: #6b4a00; }
 
