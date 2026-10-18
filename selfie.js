@@ -10,6 +10,7 @@ const SECOES = ["carregando", "erro", "consentimento", "etapaSelfie", "finalizad
 
 let client = null;
 let token = null;
+let local = null; // { latitude, longitude, precisao } obtida logo antes da selfie
 
 const el = {
   video: $("video"), overlay: $("overlay"), instrucao: $("instrucao"), debug: $("debug"),
@@ -38,6 +39,10 @@ function erro(mensagem) {
 
 /* ---------- inicialização: valida o link ---------- */
 async function init() {
+  // Rótulo de versão no rodapé: se não aparecer (ou for antigo), o navegador está com arquivos velhos
+  const rotuloVersao = $("versao");
+  if (rotuloVersao) rotuloVersao.textContent = "v" + (SelfieCore.VERSAO || "antiga");
+
   token = new URLSearchParams(location.search).get("t");
   if (!token || !/^[a-f0-9]{64}$/i.test(token)) {
     return erro("Link inválido. Peça um novo link a quem enviou este.");
@@ -72,7 +77,16 @@ $("chkConsent").addEventListener("change", (e) => {
 $("btnContinuar").addEventListener("click", () => mostrar("etapaSelfie"));
 
 /* ---------- selfie ---------- */
+// Erro com texto pronto para o cliente (amigavel) e um detalhe técnico para quem for investigar.
+function erroEnvio(amigavel, detalhe) {
+  const e = new Error(amigavel);
+  e.amigavel = amigavel;
+  e.detalhe = detalhe;
+  return e;
+}
+
 function mensagemErroCamera(e) {
+  if (e && e.amigavel) return e.amigavel;
   if (e && e.name === "NotAllowedError") {
     return "Permita o acesso à câmera nas configurações do navegador e tente de novo.";
   }
@@ -86,6 +100,19 @@ el.btnIniciar.addEventListener("click", async () => {
   ui.passo("frente", null);
   ui.debug("");
   try {
+    // A localização vem primeiro: o pedido de permissão precisa partir do toque do cliente
+    // e ela é obrigatória (o banco também recusa o envio sem coordenadas válidas).
+    ui.instrucao("Permita o acesso à localização quando o navegador pedir.");
+    try {
+      local = await SelfieCore.obterLocalizacao();
+    } catch (e) {
+      local = null;
+      ui.instrucao((e && e.mensagem) || "Não foi possível obter a sua localização.");
+      el.btnIniciar.textContent = "Tentar novamente";
+      el.btnIniciar.disabled = false;
+      return;
+    }
+
     ui.instrucao("Carregando... (pode levar alguns segundos)");
     await SelfieCore.carregarModelos(); // só detector + landmarks: leve para o celular
     await SelfieCore.iniciarCamera(el.video, el.overlay);
@@ -107,6 +134,7 @@ el.btnIniciar.addEventListener("click", async () => {
     console.error(e);
     SelfieCore.pararCamera();
     ui.instrucao(mensagemErroCamera(e));
+    if (e && e.detalhe) ui.debug("Detalhe técnico: " + e.detalhe); // ajuda a achar a causa quando algo falha
     el.btnIniciar.textContent = "Tentar novamente";
     el.btnIniciar.disabled = false;
   }
@@ -119,15 +147,44 @@ async function enviar(r) {
   const up = await client.storage
     .from("selfies")
     .upload(caminho, r.selfieBlob, { contentType: "image/jpeg", upsert: false });
-  if (up.error) throw new Error("Falha ao enviar a selfie: " + up.error.message);
+  if (up.error) {
+    const msg = String(up.error.message || "");
+    const status = up.error.statusCode || up.error.status || "";
+    const bloqueado = /row-level security|unauthorized|forbidden/i.test(msg) || String(status) === "403";
+    throw erroEnvio(
+      bloqueado
+        ? "Não foi possível concluir. O link pode ter expirado ou já ter sido usado."
+        : "Não foi possível enviar a selfie. Confira a internet e tente de novo.",
+      `envio da imagem: ${status} ${msg}`.trim()
+    );
+  }
 
+  if (!local) {
+    throw erroEnvio("Não conseguimos a sua localização. Toque em tentar novamente.", "localização ausente");
+  }
   const { data, error: err } = await client.rpc("finalizar_selfie", {
     p_token: token,
     p_selfie_path: caminho,
     p_liveness: r.liveness,
+    p_latitude: local.latitude,
+    p_longitude: local.longitude,
+    p_precisao: local.precisao,
   });
-  if (err || data !== true) {
-    throw new Error("Não foi possível concluir. O link pode ter expirado ou já ter sido usado.");
+  if (err) {
+    // PGRST202 = o banco não tem a função com estes parâmetros (aplicativo e banco em versões diferentes)
+    const naoExiste = err.code === "PGRST202" || /could not find the function/i.test(err.message || "");
+    throw erroEnvio(
+      naoExiste
+        ? "O sistema está sendo atualizado e não conseguiu gravar a sua selfie. Avise quem enviou este link."
+        : "Não foi possível gravar a selfie agora. Tente de novo em instantes.",
+      `${err.code || "erro"}: ${err.message || ""}`
+    );
+  }
+  if (data !== true) {
+    throw erroEnvio(
+      "Não foi possível concluir. O link pode ter expirado ou já ter sido usado.",
+      `o servidor recusou o envio (resposta: ${JSON.stringify(data)})`
+    );
   }
   mostrar("finalizado");
 }

@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Biometria">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2026.10.17-c">
 </head>
 <body>
   <main class="largo">
@@ -107,6 +107,17 @@
         </div>
         <p id="cmpVeredito" class="resultado"></p>
         <p id="cmpDetalhe" class="status"></p>
+
+        <div id="cmpLocal" class="local-box" hidden>
+          <h3>Onde a selfie foi feita</h3>
+          <p id="cmpEndereco" class="local-endereco"></p>
+          <p id="cmpCoords" class="status"></p>
+          <div class="linha">
+            <a id="cmpMapa" class="btn-sm btn-sec" target="_blank" rel="noopener noreferrer">Abrir no mapa</a>
+            <button type="button" id="btnEndereco" class="btn-sm btn-sec" hidden>Buscar o endereço de novo</button>
+          </div>
+        </div>
+
         <div class="linha">
           <button id="btnAprovar" class="btn-sm btn-ok" disabled>Aprovar</button>
           <button id="btnReprovar" class="btn-sm btn-perigo" disabled>Reprovar</button>
@@ -121,14 +132,16 @@
         <p id="statusLista" class="status"></p>
         <div id="lista"></div>
       </section>
+
+      <p id="versao" class="versao"></p>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="core.js"></script>
-  <script src="admin.js"></script>
+  <script src="core.js?v=2026.10.17-c"></script>
+  <script src="admin.js?v=2026.10.17-c"></script>
   <script src="pwa.js"></script>
 </body>
 </html>

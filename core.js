@@ -44,6 +44,57 @@ const SelfieCore = (() => {
     );
   }
 
+  /* ---------- localização ----------
+   * Pede a posição ao navegador (o usuário precisa permitir). Resolve com
+   * { latitude, longitude, precisao } (precisao em metros) ou rejeita com
+   * { codigo, mensagem }, uma frase pronta para mostrar ao cliente.
+   * Tenta primeiro com GPS (alta precisão) e, se não vier a tempo, com a posição
+   * aproximada (Wi-Fi/rede), que costuma funcionar em ambientes fechados.
+   */
+  function posicaoUmaVez(opcoes) {
+    return new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, opcoes)
+    );
+  }
+
+  async function obterLocalizacao() {
+    if (!("geolocation" in navigator)) {
+      throw { codigo: "indisponivel", mensagem: "Este navegador não consegue informar a localização. Abra o link no Chrome ou no Safari." };
+    }
+    let pos;
+    try {
+      pos = await posicaoUmaVez({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+    } catch (e1) {
+      if (e1.code === 1) throw erroLocalizacao(e1);
+      try {
+        pos = await posicaoUmaVez({ enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 });
+      } catch (e2) {
+        throw erroLocalizacao(e2);
+      }
+    }
+    return {
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      precisao: pos.coords.accuracy,
+    };
+  }
+
+  function erroLocalizacao(e) {
+    if (e && e.code === 1) {
+      return {
+        codigo: "negada",
+        mensagem:
+          "A localização é necessária para esta verificação, mas o acesso foi negado. " +
+          "Permita a localização para este site nas configurações do navegador (toque no cadeado ao lado do endereço) " +
+          "e tente de novo. No iPhone, confira também Ajustes > Privacidade > Serviço de Localização.",
+      };
+    }
+    if (e && e.code === 3) {
+      return { codigo: "tempo", mensagem: "Não conseguimos obter a sua localização a tempo. Vá para um lugar aberto ou ligue o GPS e tente de novo." };
+    }
+    return { codigo: "indisponivel", mensagem: "Não foi possível obter a sua localização. Ligue o GPS e a internet do aparelho e tente de novo." };
+  }
+
   /* ---------- câmera ---------- */
   async function iniciarCamera(videoEl, overlayEl) {
     video = videoEl;
@@ -124,13 +175,18 @@ const SelfieCore = (() => {
 
     // Passo 1: virar a cabeça (lado sorteado a cada tentativa)
     const lado = Math.random() < 0.5 ? "esquerda" : "direita";
-    ui.instrucao(`Vire a cabeça para a ${lado}`);
+    ui.instrucao(`Vire a cabeça para a sua ${lado}`);
     ui.passo("virar", "atual");
-    // O vídeo é exibido espelhado, então o lado "esquerda" para o usuário é o sinal negativo
+    // Sentido: os landmarks vêm da imagem crua da câmera (sem espelho). Quando a pessoa vira para a
+    // SUA esquerda, o nariz anda para a direita da imagem crua e direcaoCabeca() fica positivo.
+    // (A tela só exibe o vídeo espelhado; isso não muda o sinal da medida.)
+    // "rumo" > 0 significa que a cabeça virou para o lado pedido.
     resultado.liveness = await esperarPasso(ui, (det) => {
       const d = direcaoCabeca(det.landmarks);
-      ui.debug(`Giro ${d.toFixed(2)} (precisa passar de ${VIRADA_MIN} para o lado pedido)`);
-      return lado === "esquerda" ? d < -VIRADA_MIN : d > VIRADA_MIN;
+      const rumo = lado === "esquerda" ? d : -d;
+      if (rumo < -0.1) ui.debug(`Esse é o lado contrário: vire para a sua ${lado}`);
+      else ui.debug(`Giro ${Math.max(0, rumo).toFixed(2)} de ${VIRADA_MIN} necessário`);
+      return rumo > VIRADA_MIN;
     });
     ui.passo("virar", resultado.liveness ? "ok" : null);
     if (!resultado.liveness) return resultado;
@@ -171,5 +227,9 @@ const SelfieCore = (() => {
     return resultado;
   }
 
-  return { carregarModelos, iniciarCamera, pararCamera, executarDesafio, direcaoCabeca };
+  // Mude este valor (e o ?v= dos scripts nos .html) a cada publicação: o navegador do cliente
+  // guarda JavaScript em cache e pode misturar arquivo novo com antigo.
+  const VERSAO = "2026.10.17-c";
+
+  return { VERSAO, carregarModelos, obterLocalizacao, iniciarCamera, pararCamera, executarDesafio, direcaoCabeca };
 })();

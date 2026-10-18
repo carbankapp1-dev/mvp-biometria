@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2026.10.17-c">
 </head>
 <body>
   <main>
@@ -33,12 +33,17 @@
         para um lado e depois olhar para a câmera. Procure um lugar bem iluminado e tire óculos
         escuros ou boné.
       </p>
+      <p>
+        O navegador vai pedir permissão para usar a <strong>localização</strong> e a <strong>câmera</strong>.
+        As duas são necessárias para concluir.
+      </p>
       <label class="check">
         <input type="checkbox" id="chkConsent">
         <span>
           Autorizo <span id="empresa">a empresa que enviou este link</span> a coletar e armazenar
-          minha selfie para compará-la com o documento enviado, com a finalidade exclusiva de
-          verificar minha identidade.
+          minha selfie, a localização de onde estou agora e o endereço de internet (IP) do meu
+          aparelho, para compará-la com o documento enviado e registrar o local desta verificação,
+          com a finalidade exclusiva de verificar minha identidade.
         </span>
       </label>
       <button id="btnContinuar" disabled>Continuar</button>
@@ -63,12 +68,14 @@
       <h2>Tudo certo!</h2>
       <p>Sua selfie foi enviada. Você já pode fechar esta página.</p>
     </section>
+
+    <p id="versao" class="versao"></p>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="core.js"></script>
-  <script src="selfie.js"></script>
+  <script src="core.js?v=2026.10.17-c"></script>
+  <script src="selfie.js?v=2026.10.17-c"></script>
 </body>
 </html>

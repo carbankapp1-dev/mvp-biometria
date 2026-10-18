@@ -98,6 +98,7 @@ function aplicarSessao() {
   $("login").hidden = !!usuario;
   $("painel").hidden = !usuario;
   $("acoes").hidden = !usuario;
+  $("versao").textContent = "v" + (SelfieCore.VERSAO || "antiga");
   if (usuario) {
     // O e-mail da conta aparece só como dica do botão Sair (sem ocupar espaço na tela)
     const rotuloSair = usuario.email ? `Sair (${usuario.email})` : "Sair";
@@ -213,7 +214,7 @@ async function listar() {
   statusLista.textContent = "Carregando...";
   const { data, error } = await client
     .from("solicitacoes")
-    .select("id, token, criado_em, expira_em, nome_cliente, documento_path, selfie_path, status, liveness_cliente, distancia")
+    .select("id, token, criado_em, expira_em, nome_cliente, documento_path, selfie_path, status, liveness_cliente, distancia, latitude, longitude, precisao_m, ip_cliente, endereco")
     .order("criado_em", { ascending: false })
     .limit(50);
   if (error) {
@@ -263,15 +264,94 @@ function limparUrlsComparacao() {
 }
 
 function fecharComparacao() {
+  cmpSeq++; // respostas que ainda estão a caminho não devem preencher a tela
   $("comparacao").hidden = true;
+  $("cmpLocal").hidden = true;
   limparUrlsComparacao();
   atual = null;
 }
 $("btnFecharCmp").addEventListener("click", fecharComparacao);
 
+/* ---------- localização da selfie ---------- */
+let cmpSeq = 0; // identifica a comparação aberta
+
+const fmtCoord = (n) => Number(n).toFixed(6);
+
+async function mensagemDaFuncao(error) {
+  try {
+    const resp = error && error.context;
+    if (resp && typeof resp.json === "function") {
+      if (resp.status === 404) {
+        return "A função de endereço ainda não foi publicada no Supabase (veja o passo a passo no README).";
+      }
+      const corpo = await resp.json();
+      if (corpo && corpo.mensagem) return corpo.mensagem;
+    }
+  } catch {
+    // corpo ilegível: cai na mensagem genérica
+  }
+  return "Não foi possível consultar o endereço agora. Tente de novo em instantes.";
+}
+
+async function buscarEndereco(sol) {
+  const minha = cmpSeq;
+  const campo = $("cmpEndereco");
+  $("btnEndereco").hidden = true;
+  if (sol.endereco) {
+    campo.textContent = sol.endereco;
+    return;
+  }
+  campo.textContent = "Buscando o endereço...";
+  const { data, error } = await client.functions.invoke("geocode", { body: { id: sol.id } });
+  if (minha !== cmpSeq) return;
+  if (error) {
+    const msg = await mensagemDaFuncao(error);
+    if (minha !== cmpSeq) return;
+    campo.textContent = msg;
+    $("btnEndereco").hidden = false;
+    return;
+  }
+  if (data && data.endereco) {
+    sol.endereco = data.endereco; // evita nova consulta ao reabrir esta solicitação
+    campo.textContent = data.endereco;
+  } else {
+    campo.textContent = (data && data.mensagem) || "Nenhum endereço encontrado para essas coordenadas.";
+  }
+}
+
+function mostrarLocalizacao(sol) {
+  $("cmpLocal").hidden = false;
+  $("btnEndereco").hidden = true;
+
+  const temLocal = typeof sol.latitude === "number" && typeof sol.longitude === "number";
+  if (!temLocal) {
+    $("cmpEndereco").textContent = "Esta solicitação não tem localização registrada.";
+    $("cmpCoords").textContent = sol.ip_cliente ? `IP ${sol.ip_cliente}` : "";
+    $("cmpMapa").hidden = true;
+    return;
+  }
+
+  const partes = [`${fmtCoord(sol.latitude)}, ${fmtCoord(sol.longitude)}`];
+  if (typeof sol.precisao_m === "number") {
+    partes.push(`precisão de cerca de ${Math.round(sol.precisao_m)} m`);
+    if (sol.precisao_m > 1000) partes.push("localização aproximada: pode estar a alguns quilômetros");
+  }
+  if (sol.ip_cliente) partes.push(`IP ${sol.ip_cliente}`);
+  $("cmpCoords").textContent = partes.join(" • ");
+  $("cmpMapa").href = `https://www.google.com/maps?q=${fmtCoord(sol.latitude)},${fmtCoord(sol.longitude)}`;
+  $("cmpMapa").hidden = false;
+  buscarEndereco(sol);
+}
+
+$("btnEndereco").addEventListener("click", () => {
+  if (atual) buscarEndereco(atual.sol);
+});
+
 async function comparar(sol) {
+  const minha = ++cmpSeq;
   limparUrlsComparacao();
   atual = null;
+  $("cmpLocal").hidden = true;
   $("comparacao").hidden = false;
   $("cmpDoc").hidden = true;
   $("cmpSelfie").hidden = true;
@@ -288,6 +368,7 @@ async function comparar(sol) {
       baixar("documentos", sol.documento_path),
       baixar("selfies", sol.selfie_path),
     ]);
+    if (minha !== cmpSeq) return; // outra comparação foi aberta (ou esta foi fechada) enquanto baixava
     const urlDoc = URL.createObjectURL(docBlob);
     const urlSelfie = URL.createObjectURL(selfieBlob);
     urlsComparacao.push(urlDoc, urlSelfie);
@@ -300,6 +381,9 @@ async function comparar(sol) {
     $("btnAprovar").disabled = false;
     $("btnReprovar").disabled = false;
     atual = { sol, distancia: null };
+
+    // A localização não depende da análise facial: aparece e busca o endereço em paralelo
+    mostrarLocalizacao(sol);
 
     $("cmpStatus").textContent = "Carregando modelos e calculando a distância...";
     await SelfieCore.carregarModelos({ reconhecimento: true });
